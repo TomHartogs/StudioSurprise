@@ -7,6 +7,7 @@ package com.example.tomha.videorecorder;
 import java.io.IOException;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -18,6 +19,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -25,10 +27,13 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.lang.reflect.Parameter;
 import java.util.List;
+
+import static android.content.ContentValues.TAG;
 
 public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callback {
 
@@ -42,6 +47,9 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
     private boolean recording = false;
     private CountDownTimer timer;
     //private TextView resterendeText;
+
+    private static final int FIVE_SECONDS = 5 * 1000; // 5s * 1000 ms/s
+    private long twoFingerDownTime = -1;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -109,6 +117,38 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
         mHolder = mSurfaceView.getHolder();
         mHolder.addCallback(this);
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+    }
+
+
+    @Override
+    public boolean onTouchEvent(MotionEvent e)
+    {
+        final int action = e.getActionMasked();
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_POINTER_DOWN: {
+                if (e.getPointerCount() == 2) {
+                    // We have four fingers touching, so start the timer
+                    twoFingerDownTime = System.currentTimeMillis();
+                }
+                break;
+            }
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_POINTER_UP: {
+                final long now = System.currentTimeMillis();
+                if (now - twoFingerDownTime > FIVE_SECONDS && twoFingerDownTime != -1) {
+                    // Two fingers have been down for 5 seconds!
+                    // TODO Do something
+
+                }
+                if (e.getPointerCount() < 2) {
+                    // Fewer than four fingers, so reset the timer
+                    twoFingerDownTime = -1;
+                }
+                break;
+            }
+        }
+        return true;
     }
 
     /* Init the MediaRecorder, the order the methods are called is vital to
