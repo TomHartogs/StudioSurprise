@@ -139,7 +139,8 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
                 if (now - twoFingerDownTime > FIVE_SECONDS && twoFingerDownTime != -1) {
                     // Two fingers have been down for 5 seconds!
                     // TODO Do something
-
+                    Intent intent = new Intent(this, SettingsActivity.class);
+                    startActivity(intent);
                 }
                 if (e.getPointerCount() < 2) {
                     // Fewer than four fingers, so reset the timer
