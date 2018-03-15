@@ -7,8 +7,9 @@ package com.example.tomha.videorecorder;
 import java.io.IOException;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.hardware.Camera;
@@ -19,6 +20,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -125,8 +127,7 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
 
 
     @Override
-    public boolean onTouchEvent(MotionEvent e)
-    {
+    public boolean onTouchEvent(MotionEvent e) {
         final int action = e.getActionMasked();
         switch (action) {
             case MotionEvent.ACTION_DOWN:
@@ -140,20 +141,87 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP: {
                 final long now = System.currentTimeMillis();
-                if (now - twoFingerDownTime > FIVE_SECONDS && twoFingerDownTime != -1) {
+                if (now - twoFingerDownTime > FIVE_SECONDS && twoFingerDownTime != -1 && e.getPointerCount() == 1) {
                     // Two fingers have been down for 5 seconds!
-                    // TODO Do something
-                    Intent intent = new Intent(this, SettingsActivity.class);
-                    startActivity(intent);
+                    if (pr.getSharedPreferenceBooleanValue(getString(R.string.pref_key_passwordEnabled))) {
+                        showPasswordPrompt();
+                        break;
+                    }
                 }
                 if (e.getPointerCount() < 2) {
                     // Fewer than four fingers, so reset the timer
                     twoFingerDownTime = -1;
                 }
-                break;
             }
         }
         return true;
+    }
+
+    private void showPasswordPrompt() {
+        LayoutInflater li = LayoutInflater.from(this);
+        View promptsView = li.inflate(R.layout.password_prompt, null);
+
+        final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+
+        alertDialogBuilder.setView(promptsView);
+
+        final EditText userInput = promptsView.findViewById(R.id.editTextPasswordInput);
+        alertDialogBuilder.setCancelable(false);
+        alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                if (userInput.getText().toString().equals(pr.getSharedPreferenceValue(getString(R.string.pref_key_password)))) {
+                    openSettingsMenu();
+                } else {
+                    Toast message = Toast.makeText(getApplicationContext(), "Wrong password entered", Toast.LENGTH_SHORT);
+                    message.show();
+                    showPasswordPrompt();
+                }
+            }
+        });
+        alertDialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.cancel();
+            }
+        });
+
+        alertDialogBuilder.create().show();
+    }
+
+    private void openSettingsMenu(){
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivityForResult(intent, SETTINGS_REQUEST);
+    }
+
+    private void setTimer(int maxTime){
+        timer = new CountDownTimer(maxTime * 1000, 1000) {
+            public void onTick(long millisUntilFinished) {
+                resterendeText.setText("Seconden resterend: " + millisUntilFinished / 1000);
+                resterendeText.setVisibility(View.VISIBLE);
+            }
+
+            public void onFinish() {
+                resterendeText.setVisibility(View.INVISIBLE);
+            }
+        };
+    }
+
+    private void updatePreferences(){
+        maxRecordingLengthEnabled = pr.getMaxLengthEnabled();
+        if(maxRecordingLengthEnabled) {
+            maxRecordingLength = pr.getMaxRecordingLength();
+            countdownTimerEnabled = pr.getCountdownTimerEnabled();
+            setTimer(maxRecordingLength);
+        }
+        audioSource = pr.getSavedAudioSource();
+        profile = pr.getSavedCamcorderProfile();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == SETTINGS_REQUEST) {
+            updatePreferences();
+        }
     }
 
     /* Init the MediaRecorder, the order the methods are called is vital to
