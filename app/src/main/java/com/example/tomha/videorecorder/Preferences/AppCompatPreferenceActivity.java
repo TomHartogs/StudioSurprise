@@ -1,4 +1,4 @@
-package com.example.tomha.videorecorder;
+package com.example.tomha.videorecorder.Preferences;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
