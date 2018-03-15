@@ -26,14 +26,15 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
-import java.lang.reflect.Parameter;
-import java.util.List;
+import com.example.tomha.videorecorder.Preferences.CameraPreferenceReader;
+import com.example.tomha.videorecorder.Preferences.SettingsActivity;
 
-import static android.content.ContentValues.TAG;
+import java.io.File;
+import java.util.List;
 
 public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callback {
 
@@ -45,25 +46,35 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
     private boolean mInitSuccesful;
     private File mOutputFile;
     private boolean recording = false;
+    private CameraPreferenceReader pr;
     private CountDownTimer timer;
-    //private TextView resterendeText;
+    private TextView resterendeText;
 
+    private static final int SETTINGS_REQUEST = 0;
     private static final int FIVE_SECONDS = 5 * 1000; // 5s * 1000 ms/s
     private long twoFingerDownTime = -1;
+    private boolean countdownTimerEnabled;
+    private boolean maxRecordingLengthEnabled;
+    private int maxRecordingLength;
+    private int audioSource;
+    private CamcorderProfile profile;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.media_recorder_recipe);
 
-        //resterendeText = findViewById(R.id.resterendTextView);
+        resterendeText = findViewById(R.id.resterendTextView);
+
+        pr = new CameraPreferenceReader(this);
+        updatePreferences();
 
         mButton = findViewById(R.id.recordingButton);
         mButton.setOnClickListener(new OnClickListener() {
             @Override
             // toggle video recording
             public void onClick(View v) {
-                if(!recording){
+                if (!recording) {
                     try {
                         initRecorder(mHolder.getSurface());
                     } catch (IOException e) {
@@ -80,37 +91,30 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
                         public void run() {
                             mButton.setVisibility(View.VISIBLE);
                             mButton.setText("Stop");
-                            //mButton.setBackgroundColor(Color.RED);
                             mButton.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);
                         }
 
-                    }, 500); // 5000ms delay
-                    //timer.start();
-                }
-                else{
+                    }, 500); // 5000ms delay*/
+                    if (maxRecordingLengthEnabled && countdownTimerEnabled) {
+                        timer.start();
+                    }
+                } else {
                     mMediaRecorder.stop();
                     mMediaRecorder.reset();
                     recording = false;
-                    //timer.cancel();
-                    //resterendeText.setVisibility(View.INVISIBLE);
+                    if (maxRecordingLengthEnabled && countdownTimerEnabled) {
+                        timer.cancel();
+                        resterendeText.setVisibility(View.INVISIBLE);
+                    }
                     mButton.setText("Start");
                     mButton.getBackground().setColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY);
                 }
             }
         });
 
-        /*timer = new CountDownTimer((getIntent().getIntExtra("delay", 10)*1000), 1000) {
-
-            public void onTick(long millisUntilFinished) {
-                resterendeText.setText("Seconden resterend: " + millisUntilFinished / 1000);
-                resterendeText.setVisibility(View.VISIBLE);
-            }
-
-            public void onFinish() {
-                resterendeText.setVisibility(View.INVISIBLE);
-            }
-        };*/
-
+        if(maxRecordingLengthEnabled && countdownTimerEnabled) {
+            setTimer(maxRecordingLength);
+        }
         // we shall take the video in landscape orientation
 
         mSurfaceView = findViewById(R.id.surfaceView);
@@ -164,12 +168,13 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
             initCamera();
         }
         mMediaRecorder.setCamera(mCamera);
-        VideoCapture t = new VideoCapture();
-        t.startVideoRecording(getIntent().getIntExtra("delay", 10)); //seconds
-        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+        if(maxRecordingLengthEnabled){
+            VideoLimiter vl = new VideoLimiter();
+            vl.observeLimit(maxRecordingLength);
+        }
+        mMediaRecorder.setAudioSource(audioSource);
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-        //mMediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
-        mMediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_720P));
+        mMediaRecorder.setProfile(profile);
         mOutputFile = CameraHelper.getOutputMediaFile(CameraHelper.MEDIA_TYPE_VIDEO, "StudioSurprise");
 
         if (mOutputFile != null) {
@@ -270,9 +275,9 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
         }
     }
 
-    public class VideoCapture extends Activity implements MediaRecorder.OnInfoListener {
+    public class VideoLimiter extends Activity implements MediaRecorder.OnInfoListener {
 
-        public void startVideoRecording(int delay) {
+        public void observeLimit(int delay) {
             // Normal MediaRecorder Setup
             mMediaRecorder.setMaxDuration(delay * 1000);
             mMediaRecorder.setOnInfoListener(this);
