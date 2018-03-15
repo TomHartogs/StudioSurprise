@@ -29,7 +29,7 @@
             android:name=".MediaRecorderRecipe"
             android:theme="@style/AppTheme" />
         <activity
-            android:name=".SettingsActivity"
+            android:name=".Preferences.SettingsActivity"
             android:label="@string/title_activity_settings"></activity>
     </application>
 
