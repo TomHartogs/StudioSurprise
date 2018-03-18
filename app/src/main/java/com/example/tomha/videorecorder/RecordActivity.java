@@ -87,10 +87,7 @@ public class RecordActivity extends AppCompatActivity {
             }
         });
         alert.show();*/
-        final Intent intent = new Intent(this, MediaRecorderRecipe.class);
-        intent.putExtra("delay", 60*5);
-        startActivity(intent);
-
+        showRecordingActivity();
     }
 
     @Override
