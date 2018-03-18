@@ -18,6 +18,7 @@ import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -42,19 +43,16 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
 
     private MediaRecorder mMediaRecorder;
     private Camera mCamera;
-    private SurfaceView mSurfaceView;
-    private SurfaceHolder mHolder;
-    private Button mButton;
-    private boolean mInitSuccesful;
-    private File mOutputFile;
     private boolean recording = false;
     private CameraPreferenceReader pr;
-    private CountDownTimer timer;
+    private CountDownTimer timeLeftTimer;
+    private CountDownTimer secretMenuTimer;
+    private boolean secretMenuTimerExpired = false;
     private TextView resterendeText;
+    private SurfaceHolder mHolder;
 
     private static final int SETTINGS_REQUEST = 0;
     private static final int FIVE_SECONDS = 5 * 1000; // 5s * 1000 ms/s
-    private long twoFingerDownTime = -1;
     private boolean countdownTimerEnabled;
     private boolean maxRecordingLengthEnabled;
     private int maxRecordingLength;
@@ -269,6 +267,7 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
         mMediaRecorder.setAudioSource(audioSource);
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
         mMediaRecorder.setProfile(profile);
+        File mOutputFile;
         mOutputFile = CameraHelper.getOutputMediaFile(CameraHelper.MEDIA_TYPE_VIDEO, "StudioSurprise");
 
         if (mOutputFile != null) {
@@ -285,7 +284,6 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
             // proper order
             e.printStackTrace();
         }
-        mInitSuccesful = true;
     }
 
     private void initCamera(){
@@ -380,7 +378,7 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
         public void onInfo(MediaRecorder mr, int what, int extra) {
             if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
                 Log.v("VIDEOCAPTURE","Maximum Duration Reached");
-                mButton.callOnClick();
+                onRecordButtonClick();
             }
         }
     }
