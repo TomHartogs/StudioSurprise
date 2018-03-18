@@ -380,7 +380,7 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
         public void onInfo(MediaRecorder mr, int what, int extra) {
             if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
                 Log.v("VIDEOCAPTURE","Maximum Duration Reached");
-                mButton.callOnClick();
+                onRecordButtonClick();
             }
         }
     }
