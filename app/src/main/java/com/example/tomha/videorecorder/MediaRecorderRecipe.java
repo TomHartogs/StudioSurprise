@@ -71,60 +71,69 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
         pr = new CameraPreferenceReader(this);
         updatePreferences();
 
-        mButton = findViewById(R.id.recordingButton);
-        mButton.setOnClickListener(new OnClickListener() {
-            @Override
-            // toggle video recording
-            public void onClick(View v) {
-                if (!recording) {
-                    try {
-                        initRecorder(mHolder.getSurface());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    mCamera.unlock();
-                    mMediaRecorder.start();
-                    recording = true;
-                    mButton.setVisibility(View.INVISIBLE);
-                    Handler handler = new Handler();
-                    handler.postDelayed(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            mButton.setVisibility(View.VISIBLE);
-                            mButton.setText("Stop");
-                            mButton.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);
-                        }
-
-                    }, 500); // 5000ms delay*/
-                    if (maxRecordingLengthEnabled && countdownTimerEnabled) {
-                        timer.start();
-                    }
-                } else {
-                    mMediaRecorder.stop();
-                    mMediaRecorder.reset();
-                    recording = false;
-                    if (maxRecordingLengthEnabled && countdownTimerEnabled) {
-                        timer.cancel();
-                        resterendeText.setVisibility(View.INVISIBLE);
-                    }
-                    mButton.setText("Start");
-                    mButton.getBackground().setColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY);
-                }
-            }
-        });
-
         if(maxRecordingLengthEnabled && countdownTimerEnabled) {
-            setTimer(maxRecordingLength);
+            setTimeLeftTimer(maxRecordingLength);
         }
         // we shall take the video in landscape orientation
 
-        mSurfaceView = findViewById(R.id.surfaceView);
-        mHolder = mSurfaceView.getHolder();
+        secretMenuTimer = new CountDownTimer(FIVE_SECONDS, 1000) {
+            public void onTick(long millisUntilFinished) {
+                //Do nothing
+            }
+            public void onFinish() {
+                secretMenuTimerExpired = true;
+                MotionEvent fakeMotionEvent = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis()+100, MotionEvent.ACTION_POINTER_UP, 0.0f, 0.0f, 0);
+                onTouchEvent(fakeMotionEvent);
+            }
+        };
+        mHolder = ((SurfaceView)findViewById(R.id.surfaceView)).getHolder();
         mHolder.addCallback(this);
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
 
+
+    public void onRecordButtonClick(){
+        onRecordButtonClick(findViewById(R.id.recordingButton));
+    }
+
+    public void onRecordButtonClick(View v){
+        final Button mButton = (Button)v;
+        if (!recording) {
+            try {
+                initRecorder(mHolder.getSurface());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            mCamera.unlock();
+            mMediaRecorder.start();
+            recording = true;
+            mButton.setVisibility(View.INVISIBLE);
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+
+                @Override
+                public void run() {
+                    mButton.setVisibility(View.VISIBLE);
+                    mButton.setText("Stop");
+                    mButton.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);
+                }
+
+            }, 500); // 5000ms delay*/
+            if (maxRecordingLengthEnabled && countdownTimerEnabled) {
+                timeLeftTimer.start();
+            }
+        } else {
+            mMediaRecorder.stop();
+            mMediaRecorder.reset();
+            recording = false;
+            if (maxRecordingLengthEnabled && countdownTimerEnabled) {
+                timeLeftTimer.cancel();
+                resterendeText.setVisibility(View.INVISIBLE);
+            }
+            mButton.setText("Start");
+            mButton.getBackground().setColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY);
+        }
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
@@ -132,25 +141,40 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
         switch (action) {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN: {
-                if (e.getPointerCount() == 2) {
+                int fingerCount = e.getPointerCount();
+                if (fingerCount == 2) {
                     // We have four fingers touching, so start the timer
-                    twoFingerDownTime = System.currentTimeMillis();
+                    secretMenuTimer.cancel();
+                    secretMenuTimer.start();
+                    secretMenuTimerExpired = false;
+                    //twoFingerDownTime = System.currentTimeMillis();
+                } else if (fingerCount > 2) {
+                    secretMenuTimer.cancel();
                 }
                 break;
             }
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP: {
-                final long now = System.currentTimeMillis();
-                if (now - twoFingerDownTime > FIVE_SECONDS && twoFingerDownTime != -1 && e.getPointerCount() == 1) {
+                int fingerCount = e.getPointerCount() - 1;
+                if (secretMenuTimerExpired) {
                     // Two fingers have been down for 5 seconds!
                     if (pr.getSharedPreferenceBooleanValue(getString(R.string.pref_key_passwordEnabled))) {
                         showPasswordPrompt();
                         break;
+                    } else {
+                        openSettingsMenu();
                     }
                 }
-                if (e.getPointerCount() < 2) {
+                else if (fingerCount < 2) {
                     // Fewer than four fingers, so reset the timer
-                    twoFingerDownTime = -1;
+                    secretMenuTimer.cancel();
+                    secretMenuTimerExpired = false;
+                    //twoFingerDownTime = -1;
+                }
+                else if (fingerCount == 2) {
+                    secretMenuTimer.cancel();
+                    secretMenuTimer.start();
+                    secretMenuTimerExpired = false;
                 }
             }
         }
@@ -192,8 +216,8 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
         startActivityForResult(intent, SETTINGS_REQUEST);
     }
 
-    private void setTimer(int maxTime){
-        timer = new CountDownTimer(maxTime * 1000, 1000) {
+    private void setTimeLeftTimer(int maxTime){
+        timeLeftTimer = new CountDownTimer(maxTime * 1000, 1000) {
             public void onTick(long millisUntilFinished) {
                 resterendeText.setText("Seconden resterend: " + millisUntilFinished / 1000);
                 resterendeText.setVisibility(View.VISIBLE);
@@ -210,7 +234,9 @@ public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callb
         if(maxRecordingLengthEnabled) {
             maxRecordingLength = pr.getMaxRecordingLength();
             countdownTimerEnabled = pr.getCountdownTimerEnabled();
-            setTimer(maxRecordingLength);
+            if(countdownTimerEnabled) {
+                setTimeLeftTimer(maxRecordingLength);
+            }
         }
         audioSource = pr.getSavedAudioSource();
         profile = pr.getSavedCamcorderProfile();
