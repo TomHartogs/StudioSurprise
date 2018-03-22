@@ -1,6 +1,8 @@
 package com.example.tomha.videorecorder.Preferences;
 
+import android.content.Intent;
 import android.content.res.Configuration;
+import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.support.annotation.LayoutRes;
@@ -9,8 +11,11 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.example.tomha.videorecorder.MediaRecorderRecipe;
 
 /**
  * A {@link android.preference.PreferenceActivity} which implements and proxies the necessary calls
@@ -105,5 +110,15 @@ public abstract class AppCompatPreferenceActivity extends PreferenceActivity {
             mDelegate = AppCompatDelegate.create(this, null);
         }
         return mDelegate;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == android.R.id.home) {
+            startActivity(new Intent(this, MediaRecorderRecipe.class));
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
