@@ -2,4 +2,6 @@
     <string name="app_name">VideoRecorder</string>
 
     <string name="request_password">Enter password</string>
+    <string name="stop">Stop</string>
+    <string name="start">Start</string>
 </resources>

@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
@@ -177,6 +178,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_countdownTimerEnabled)));
             bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_audioSource)));
         }
+<<<<<<< HEAD
 
         @Override
         public boolean onOptionsItemSelected(MenuItem item) {
@@ -187,6 +189,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             }
             return super.onOptionsItemSelected(item);
         }
+=======
+>>>>>>> feature/code_cleanup
     }
 
     /**
@@ -207,16 +211,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             // guidelines.
             bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_passwordEnabled)));
             bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_password)));
-        }
-
-        @Override
-        public boolean onOptionsItemSelected(MenuItem item) {
-            int id = item.getItemId();
-            if (id == android.R.id.home) {
-                startActivity(new Intent(getActivity(), SettingsActivity.class));
-                return true;
-            }
-            return super.onOptionsItemSelected(item);
         }
     }
 }
