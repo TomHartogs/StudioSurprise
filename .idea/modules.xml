@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/VideoRecorder.iml" filepath="$PROJECT_DIR$/.idea/VideoRecorder.iml" />
+      <module fileurl="file://$PROJECT_DIR$/StudioSurprise.iml" filepath="$PROJECT_DIR$/StudioSurprise.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

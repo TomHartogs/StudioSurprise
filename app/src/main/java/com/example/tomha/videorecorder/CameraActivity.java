@@ -40,7 +40,7 @@ import com.example.tomha.videorecorder.Preferences.SettingsActivity;
 import java.io.File;
 import java.util.List;
 
-public class MediaRecorderRecipe extends Activity implements SurfaceHolder.Callback {
+public class CameraActivity extends Activity implements SurfaceHolder.Callback {
 
     private MediaRecorder mMediaRecorder;
     private Camera mCamera;

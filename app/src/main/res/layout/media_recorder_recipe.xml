@@ -6,6 +6,8 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
 
+    android:id = "@+id/container"
+
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -20,7 +22,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"></SurfaceView>
+            app:layout_constraintTop_toTopOf="parent"/>
 
         <Button
             android:id="@+id/recordingButton"
@@ -32,7 +34,8 @@
             android:textSize="24sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            android:onClick="onRecordButtonClick" />
 
         <TextView
             android:id="@+id/resterendTextView"
