@@ -178,7 +178,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_countdownTimerEnabled)));
             bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_key_audioSource)));
         }
-<<<<<<< HEAD
 
         @Override
         public boolean onOptionsItemSelected(MenuItem item) {
@@ -189,8 +188,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             }
             return super.onOptionsItemSelected(item);
         }
-=======
->>>>>>> feature/code_cleanup
     }
 
     /**
